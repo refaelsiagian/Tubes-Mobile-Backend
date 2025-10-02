@@ -17,7 +17,8 @@ class BookmarkFolderFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            // 'user_id' akan diisi dari seeder
+            'name' => fake()->words(2, true),
         ];
     }
 }

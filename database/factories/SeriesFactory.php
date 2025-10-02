@@ -17,7 +17,9 @@ class SeriesFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            // 'user_id' akan diisi dari seeder
+            'title' => fake()->sentence(3),
+            'description' => fake()->paragraph(),
         ];
     }
 }

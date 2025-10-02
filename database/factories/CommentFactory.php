@@ -17,7 +17,8 @@ class CommentFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            // 'post_id' dan 'user_id' akan diisi dari seeder
+            'content' => fake()->paragraph(2),
         ];
     }
 }

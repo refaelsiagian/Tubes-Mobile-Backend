@@ -18,9 +18,11 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'username',
         'email',
         'password',
+        'bio',
+        'avatar_url',
     ];
 
     /**
@@ -32,6 +34,42 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+        public function posts() 
+    {
+        return $this->hasMany(Post::class);
+    }
+
+        public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+        public function bookmarkFolders()
+    {
+        return $this->hasMany(BookmarkFolder::class);
+    }
+
+        public function series()
+    {
+        return $this->hasMany(Series::class);
+    }
+
+        public function likes()
+    {
+        return $this->belongsToMany(Post::class, 'likes', 'user_id', 'post_id');
+    }
+
+        public function following()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
+    }
+
+        public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id');
+    }
+
 
     /**
      * The attributes that should be cast.

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,8 +16,26 @@ use App\Http\Controllers\PostController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
 
-Route::apiResource('posts', PostController::class);
+
+
+// --- ROUTE PUBLIK (Gak perlu login) ---
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+
+// --- ROUTE PROTECTED (Harus Login / Bawa Token) ---
+Route::middleware('auth:sanctum')->group(function () {
+    
+    // Logout harus login dulu
+    Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // Cek Profile Sendiri (Biasanya Flutter butuh ini buat mastiin token masih aktif)
+    Route::get('/user', function (Request $request) {
+        return new \App\Http\Resources\UserResource($request->user());
+    });
+    
+    // Nanti endpoint Create Post (Store), Update, Delete pindahin ke sini
+    // biar cuma user login yang bisa posting!
+    Route::apiResource('posts', PostController::class);
+});

@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,4 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Nanti endpoint Create Post (Store), Update, Delete pindahin ke sini
     // biar cuma user login yang bisa posting!
     Route::apiResource('posts', PostController::class);
+
+    // Route untuk Komentar (Nested Resource)
+    Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
+    
+    // Route Hapus (Gak perlu nested karena Comment ID sudah unik)
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 });

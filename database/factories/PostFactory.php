@@ -88,7 +88,8 @@ class PostFactory extends Factory
         return [
             // 'user_id' => User::factory(),
             'title' => fake()->sentence(5),
-            'content' => json_encode($dummyContent), 
+            'content' => json_encode($dummyContent),
+            'snippet' => fake()->text(100), 
             'status' => fake()->randomElement(['draft', 'published']),
         ];
     }

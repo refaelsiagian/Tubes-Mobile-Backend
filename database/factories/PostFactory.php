@@ -8,19 +8,88 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Post>
  */
+
 class PostFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $dummyContent = [
+            [
+                "insert" => "Ini Judul",
+                "attributes" => [
+                    "bold" => true
+                ]
+            ],
+            [
+                "insert" => "\n",
+                "attributes" => [
+                    "header" => 2
+                ]
+            ],
+            [
+                "insert" => "Desk\n\n"
+            ],
+            [
+                "insert" => "Ini bold",
+                "attributes" => [
+                    "bold" => true
+                ]
+            ],
+            [
+                "insert" => "\n"
+            ],
+            [
+                "insert" => "Ini italic (miring)",
+                "attributes" => [
+                    "italic" => true
+                ]
+            ],
+            [
+                "insert" => "\n"
+            ],
+            [
+                "insert" => "Ini underline",
+                "attributes" => [
+                    "underline" => true
+                ]
+            ],
+            [
+                "insert" => "\nIni Block Quote "
+            ],
+            [
+                "insert" => "\n",
+                "attributes" => [
+                    "blockquote" => true
+                ]
+            ],
+            [
+                "insert" => "Ini Bullet list "
+            ],
+            [
+                "insert" => "\n",
+                "attributes" => [
+                    "list" => "bullet"
+                ]
+            ],
+            [
+                "insert" => "Ini numbered list"
+            ],
+            [
+                "insert" => "\n",
+                "attributes" => [
+                    "list" => "ordered"
+                ]
+            ],
+            [
+                "insert" => "\n"
+            ]
+        ];
+
         return [
             // 'user_id' => User::factory(),
             'title' => fake()->sentence(5),
-            'content' => fake()->paragraphs(3, true),
+            'content' => json_encode($dummyContent),
+            'snippet' => fake()->text(100), 
             'status' => fake()->randomElement(['draft', 'published']),
         ];
     }

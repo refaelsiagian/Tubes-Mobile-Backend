@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password');
             $table->text('bio')->nullable();
             $table->string('avatar_url')->nullable();
+            $table->string('banner_url')->nullable();
             $table->timestamps();
         });
     }

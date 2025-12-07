@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,4 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Endpoint Toggle Like
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle']);
+
+    Route::get('/users/{user}', [UserController::class, 'show']); // {user} ini nanti isinya username
+    // 2. Route Profil Sendiri ("Me")
+    Route::get('/me', [UserController::class, 'me']);     // Lihat profil sendiri
+    Route::post('/me', [UserController::class, 'update']); // Edit profil sendiri
 });

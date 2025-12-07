@@ -37,39 +37,44 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-        public function posts() 
+    public function posts()
     {
         return $this->hasMany(Post::class);
     }
 
-        public function comments()
+    public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
-        public function bookmarkFolders()
+    public function bookmarkFolders()
     {
         return $this->hasMany(BookmarkFolder::class);
     }
 
-        public function series()
+    public function series()
     {
         return $this->hasMany(Series::class);
     }
 
-        public function likedPosts()
+    public function likedPosts()
     {
         return $this->belongsToMany(Post::class, 'likes', 'user_id', 'post_id');
     }
 
-        public function following()
+    public function following()
     {
         return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
     }
 
-        public function followers()
+    public function followers()
     {
         return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id');
+    }
+    // Supaya bisa dicari pakai Username, bukan ID (biar URL-nya cantik: /users/budi)
+    public function getRouteKeyName()
+    {
+        return 'username';
     }
 
 

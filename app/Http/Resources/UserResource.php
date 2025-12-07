@@ -18,6 +18,7 @@ class UserResource extends JsonResource
             // 1. DATA DASAR (Selalu Muncul)
             // Ini murah, karena ambil dari kolom tabel users langsung
             'id' => $this->id,
+            'name' => $this->name,
             'username' => $this->username,
             'avatar_url' => $this->avatar_url
                 ? asset('storage/' . $this->avatar_url)
@@ -36,12 +37,18 @@ class UserResource extends JsonResource
             // Kita pakai '$this->whenCounted'.
             // Artinya: Key 'stats' HANYA akan muncul di JSON kalau Controller
             // secara eksplisit memanggil 'withCount'.
-            'stats' => $this->when($this->posts_count !== null, function () {
-                return [
-                    'posts' => (int) $this->posts_count,
-                    'followers' => (int) ($this->followers_count ?? 0),
-                ];
-            }),
+            // Statistik (Otomatis muncul kalau di Controller dipanggil loadCount)
+            'stats' => [
+                'posts' => (int) ($this->posts_count ?? 0),
+                'followers' => (int) ($this->followers_count ?? 0),
+                'following' => (int) ($this->following_count ?? 0),
+            ],
+
+            // Cek Status Follow (Khusus kalau yg lihat orang lain)
+            // "Apakah user yg sedang login memfollow user ini?"
+            'is_followed' => $request->user()
+                ? $this->followers()->where('follower_id', $request->user()->id)->exists()
+                : false,
         ];
     }
 }

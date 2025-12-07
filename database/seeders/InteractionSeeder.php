@@ -17,21 +17,39 @@ class InteractionSeeder extends Seeder
     public function run(): void
     {
         $this->command->info('Creating interactions (Likes, Comments, Follows, etc.)...');
-        
+
         $users = User::all();
         $posts = Post::all();
         $folders = BookmarkFolder::all();
         $series = Series::all();
-        
-        // --- Buat Komentar dan Likes ---
+
+        // --- BAGIAN INI YANG DIPERBAIKI (Likes) ---
         foreach ($posts as $post) {
+            // Ambil random user (maksimal 15 atau sejumlah user yg ada)
             $userCount = $users->count();
-            $maxInteractions = min($userCount, 15); // Jangan minta lebih dari jumlah user yang ada
-            $interactingUsers = $users->random(rand(5, $maxInteractions));
-            
-            foreach ($interactingUsers as $user) {
-                Comment::factory()->create(['post_id' => $post->id, 'user_id' => $user->id]);
-                $post->likes()->attach($user->id);
+            $maxInteractions = min($userCount, 15);
+
+            if ($maxInteractions > 0) {
+                $interactingUsers = $users->random(rand(min(5, $maxInteractions), $maxInteractions));
+
+                foreach ($interactingUsers as $user) {
+                    // 1. Buat Comment (Aman karena pakai factory)
+                    Comment::factory()->create([
+                        'post_id' => $post->id,
+                        'user_id' => $user->id
+                    ]);
+
+                    // 2. Buat Like (ERROR SEBELUMNYA DI SINI)
+                    // Cek dulu biar gak error unique constraint (post_id + user_id)
+                    // Jika user ini belum like post ini, baru create.
+                    if (!$post->likes()->where('user_id', $user->id)->exists()) {
+
+                        // GANTI attach() MENJADI create()
+                        $post->likes()->create([
+                            'user_id' => $user->id
+                        ]);
+                    }
+                }
             }
         }
 
@@ -71,7 +89,7 @@ class InteractionSeeder extends Seeder
                 $user->following()->attach($usersToFollow);
             }
         }
-        
+
         $this->command->info('Interactions have been created!');
     }
 }

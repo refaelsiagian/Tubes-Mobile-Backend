@@ -24,6 +24,7 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password), // Password wajib di-hash
+            'name' => $request->username, // Default name sama dengan username
             // 'avatar_url' => null, // Default null, nanti UserResource yang kasih default avatar
         ]);
 

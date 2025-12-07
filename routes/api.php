@@ -6,6 +6,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\LikeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,4 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route Upload Gambar
     Route::post('/upload-image', [ImageController::class, 'upload']);
+
+    // Endpoint Toggle Like
+    Route::post('/posts/{post}/like', [LikeController::class, 'toggle']);
 });

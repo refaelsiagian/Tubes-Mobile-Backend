@@ -14,6 +14,9 @@ class PostResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Cek user yang sedang login (kalau ada)
+        $user = $request->user('sanctum');
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -29,6 +32,7 @@ class PostResource extends JsonResource
                 'comments' => (int) $this->comments_count,
             ],
             'published_at' => $this->created_at->toFormattedDateString(), // Contoh format tanggal
+            'is_liked' => $user ? $this->likes()->where('user_id', $user->id)->exists() : false,
         ];
     }
 }

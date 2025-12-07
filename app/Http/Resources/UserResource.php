@@ -22,6 +22,9 @@ class UserResource extends JsonResource
             'avatar_url' => $this->avatar_url
                 ? asset('storage/' . $this->avatar_url)
                 : 'https://ui-avatars.com/api/?name=' . urlencode($this->username),
+            'banner_url' => $this->banner_url
+                ? asset('storage/' . $this->banner_url)
+                : null,
 
             // 2. DATA TAMBAHAN (Kondisional)
             // Bio & Join Date cuma teks, tidak berat, tapi kalau mau disembunyikan

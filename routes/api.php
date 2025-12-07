@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,4 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Route Hapus (Gak perlu nested karena Comment ID sudah unik)
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+    // Route Upload Gambar
+    Route::post('/upload-image', [ImageController::class, 'upload']);
 });

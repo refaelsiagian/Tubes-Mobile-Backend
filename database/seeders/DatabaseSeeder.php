@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
         User::truncate();
         Post::truncate();
         Comment::truncate();
-        BookmarkFolder::truncate();
         Series::truncate();
         DB::table('likes')->truncate();
         DB::table('follows')->truncate();

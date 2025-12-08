@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -48,10 +50,10 @@ class UserController extends Controller
             'bio'      => 'nullable|string|max:500',
             // Validasi username unik, KECUALI untuk user ini sendiri
             'username' => 'nullable|string|max:50|unique:users,username,' . $user->id,
-            
+
             // Validasi Gambar (File Fisik)
             // Backend menerima file mentah, terserah Flutter mau kirim hasil crop atau asli
-            'avatar'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
+            'avatar'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'banner'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -71,7 +73,7 @@ class UserController extends Controller
             // B. Simpan file baru (Laravel otomatis kasih nama unik hash)
             // Masuk ke folder: storage/app/public/avatars
             $path = $request->file('avatar')->store('avatars', 'public');
-            
+
             // C. Masukkan path ke array update
             $dataToUpdate['avatar_url'] = $path;
         }
@@ -85,7 +87,7 @@ class UserController extends Controller
 
             // B. Simpan file baru
             $path = $request->file('banner')->store('banners', 'public');
-            
+
             // C. Masukkan path
             $dataToUpdate['banner_url'] = $path;
         }
@@ -96,5 +98,49 @@ class UserController extends Controller
 
         // 6. Kembalikan Response User Terbaru
         return new UserResource($user);
+    }
+
+    public function updateEmail(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            // 1. Email Baru: Wajib format email & Unik (kecuali punya sendiri)
+            'email' => 'required|email|unique:users,email,' . $user->id,
+
+            // 2. Password Konfirmasi: Wajib diisi & Harus cocok dengan password saat ini
+            'password' => 'required|current_password',
+        ]);
+
+        // Kalau validasi lolos, berarti password benar. Langsung update.
+        $user->update([
+            'email' => $request->email
+        ]);
+
+        return response()->json([
+            'message' => 'Email berhasil diperbarui',
+            'user' => new UserResource($user), // Balikin data user biar UI update
+        ]);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            // User wajib isi password lama
+            'current_password' => 'required|current_password',
+            // Password baru harus dikonfirmasi (ketik 2x)
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ]);
+
+        $user = $request->user();
+
+        // Update password di database (Jangan lupa di-Hash!)
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return response()->json([
+            'message' => 'Password berhasil diubah'
+        ]);
     }
 }

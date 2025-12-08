@@ -60,4 +60,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // 2. Route Profil Sendiri ("Me")
     Route::get('/me', [UserController::class, 'me']);     // Lihat profil sendiri
     Route::post('/me', [UserController::class, 'update']); // Edit profil sendiri
+
+    // 3. Ganti Email (Butuh email baru & pass saat ini)
+    Route::put('/me/email', [UserController::class, 'updateEmail']);
+
+    // 2. Ganti Password (Butuh pass lama & baru)
+    Route::put('/me/password', [UserController::class, 'updatePassword']);
 });

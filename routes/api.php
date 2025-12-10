@@ -8,6 +8,8 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FollowController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -66,4 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 2. Ganti Password (Butuh pass lama & baru)
     Route::put('/me/password', [UserController::class, 'updatePassword']);
+
+    // 4. Route Follow / Unfollow
+    Route::post('/users/{user}/follow', [FollowController::class, 'toggle']);
 });

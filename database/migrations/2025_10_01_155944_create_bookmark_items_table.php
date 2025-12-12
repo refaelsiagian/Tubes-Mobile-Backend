@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('bookmark_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('folder_id')->constrained('bookmark_folders')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->timestamp('created_at')->useCurrent();
-            $table->unique(['folder_id', 'post_id']);
+            $table->unique(['user_id', 'post_id']);
         });
     }
 

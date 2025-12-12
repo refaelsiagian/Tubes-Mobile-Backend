@@ -47,11 +47,6 @@ class User extends Authenticatable
         return $this->hasMany(Comment::class);
     }
 
-    public function bookmarkFolders()
-    {
-        return $this->hasMany(BookmarkFolder::class);
-    }
-
     public function series()
     {
         return $this->hasMany(Series::class);
@@ -77,6 +72,15 @@ class User extends Authenticatable
         return 'username';
     }
 
+    public function bookmarks()
+    {
+        return $this->hasMany(BookmarkItem::class);
+    }
+
+        public function bookmarkedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'bookmark_items', 'user_id', 'post_id');
+    }
 
     /**
      * The attributes that should be cast.

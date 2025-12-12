@@ -9,6 +9,8 @@ use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\BookmarkController;
+use App\Http\Controllers\SeriesController;
 
 
 /*
@@ -71,4 +73,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 4. Route Follow / Unfollow
     Route::post('/users/{user}/follow', [FollowController::class, 'toggle']);
+
+    // Toggle Bookmark
+    Route::post('/posts/{post}/bookmark', [BookmarkController::class, 'toggle']);
+    
+    // Lihat Daftar Bookmark Saya
+    Route::get('/bookmarks', [BookmarkController::class, 'index']);
+
+    // CRUD Series (Jilid)
+    // Contoh data input:
+    // {
+    //     "title": "Koleksi Belajar Masakkkkk",
+    //     "description": "Resep andalan saya",
+    //     "posts": [8, 2, 5, 3]
+    // }
+    Route::apiResource('series', SeriesController::class);
 });

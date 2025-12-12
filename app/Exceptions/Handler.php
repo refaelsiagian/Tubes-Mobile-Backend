@@ -4,6 +4,9 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+// 1. IMPORT DUA BARIS INI (PENTING)
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -25,6 +28,17 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        // 2. TAMBAHKAN KODE INI DI DALAM REGISTER
+        $this->renderable(function (NotFoundHttpException $e, Request $request) {
+            // Cek apakah request datang dari jalur '/api/*'
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Data tidak ditemukan.',
+                    'error_code' => 404
+                ], 404);
+            }
         });
     }
 }

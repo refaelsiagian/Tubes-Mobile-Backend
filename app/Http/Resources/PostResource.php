@@ -23,7 +23,7 @@ class PostResource extends JsonResource
             // 'thumbnail_url' => $this->thumbnail_url, // Jika ada
             // 'snippet' => substr($this->content, 0, 100) . '...', // Contoh snippet
             'content' => $this->when(
-                !$request->routeIs('posts.index'),
+                $request->routeIs('posts.show'),
                 $this->content
             ),
             'author' => new UserResource($this->whenLoaded('user')),
@@ -33,6 +33,9 @@ class PostResource extends JsonResource
             ],
             'published_at' => $this->created_at->toFormattedDateString(), // Contoh format tanggal
             'is_liked' => $user ? $this->likes()->where('user_id', $user->id)->exists() : false,
+            'is_bookmarked' => $user
+                ? $this->bookmarkedBy()->where('user_id', $user->id)->exists()
+                : false,
         ];
     }
 }

@@ -10,61 +10,36 @@ use App\Models\Post;
 class BookmarkController extends Controller
 {
 
+    // 1. TOGGLE BOOKMARK (Simpan/Hapus)
+    // Kita pakai fitur toggle() bawaan relasi belongsToMany biar singkat
     public function toggle(Request $request, Post $post)
     {
-        $user = $request->user();
+        // Gunakan relasi bookmarkedPosts() yang ada di User.php
+        // toggle() otomatis cek: kalau ada -> hapus, kalau gak ada -> simpan.
+        $changes = $request->user()->bookmarkedPosts()->toggle($post->id);
 
-        // Cek apakah item sudah ada
-        $bookmark = BookmarkItem::where('user_id', $user->id)
-            ->where('post_id', $post->id)
-            ->first();
-
-        if ($bookmark) {
-            // Jika ada, hapus (Unbookmark)
-            $bookmark->delete();
-            $isBookmarked = false;
-            $message = 'Dihapus dari bookmark';
-        } else {
-            // Jika belum ada, buat baru (Bookmark)
-            BookmarkItem::create([
-                'user_id' => $user->id,
-                'post_id' => $post->id,
-            ]);
-            $isBookmarked = true;
-            $message = 'Disimpan ke bookmark';
-        }
+        // attached berisi array ID yang baru disimpan. 
+        // Kalau kosong, berarti barusan dihapus (detached).
+        $isBookmarked = count($changes['attached']) > 0;
 
         return response()->json([
-            'message' => $message,
+            'message' => $isBookmarked ? 'Disimpan ke bookmark' : 'Dihapus dari bookmark',
             'is_bookmarked' => $isBookmarked
         ]);
     }
 
-    // BONUS: Endpoint buat liat daftar bookmark saya
-    // GET /api/bookmarks
+    // 2. LIHAT DAFTAR BOOKMARK
     public function index(Request $request)
     {
-        $bookmarkedPosts = $request->user()
-            // Ambil item bookmark-nya
-            ->bookmarks()
-            // Lompati/Load postingan yang ada di item tersebut
-            ->with('post.user') // Load Post dan Author dari Post tersebut
-            ->latest('created_at')
-            ->paginate(10);
+        // PERBAIKAN 2: Langsung panggil Post via relasi bookmarkedPosts
+        // Ini JAUH lebih efisien daripada ambil BookmarkItem dulu terus di-map
+        $posts = $request->user()
+            ->bookmarkedPosts() // Panggil relasi belongsToMany di User.php
+            ->with('user') // Eager load author postingan biar ringan
+            ->latest('bookmark_items.created_at') // Urutkan berdasarkan kapan disimpannya
+            ->paginate(10); // Pagination aman terkendali
 
-        // Kita harus memetakan hasilnya untuk mendapatkan koleksi Post
-        $posts = $bookmarkedPosts->map(function ($item) {
-            return $item->post;
-        });
-
-        // Karena kita tidak bisa langsung return collection dari PostResource pada hasil map()
-        // yang pagination, kamu bisa gunakan cara ini (agak lebih rumit):
-        // Cara tercepat untuk demo adalah mengambil semua datanya saja
-
-        // Cara paling simpel untuk demo:
+        // Return collection langsung, pagination metadata (page, total) TETAP ADA
         return PostResource::collection($posts);
-
-        // CATATAN: Dengan cara ini, pagination metadata-nya akan hilang, 
-        // tapi untuk demo list post-nya akan muncul.
     }
 }

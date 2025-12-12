@@ -85,7 +85,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // {
     //     "title": "Koleksi Belajar Masakkkkk",
     //     "description": "Resep andalan saya",
-    //     "posts": [8, 2, 5, 3]
+    //     "posts": [8, 2, 5, 3]   // id post yang sudah diurutkan
     // }
     Route::apiResource('series', SeriesController::class);
+
+    // 1. Tab Profil Orang Lain
+    Route::get('/users/{user}/posts',  [UserController::class, 'posts']);
+    Route::get('/users/{user}/series', [UserController::class, 'series']);
+    Route::get('/users/{user}/likes',  [UserController::class, 'likes']);
+
+    // 2. Tab Profil Saya
+    Route::get('/me/posts',  [UserController::class, 'myPosts']);
+    Route::get('/me/series', [UserController::class, 'mySeries']);
+    Route::get('/me/likes',  [UserController::class, 'myLikes']);
 });

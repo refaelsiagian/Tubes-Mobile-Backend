@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\PostResource;
+use App\Http\Resources\SeriesResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -142,5 +144,64 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Password berhasil diubah'
         ]);
+    }
+
+    // --- BAGIAN A: TAB PROFIL ORANG LAIN ---
+
+    // 1. Tab Lembar (Postingan User Ini)
+    // GET /api/users/{username}/posts
+    public function posts(User $user)
+    {
+        $posts = $user->posts()->latest()->paginate(10);
+        return PostResource::collection($posts);
+    }
+
+    // 2. Tab Jilid (Series User Ini)
+    // GET /api/users/{username}/series
+    public function series(User $user)
+    {
+        $series = $user->series()->with('posts')->latest()->paginate(10);
+        return SeriesResource::collection($series);
+    }
+
+    // 3. Tab Suka (Yang di-Like User Ini)
+    // GET /api/users/{username}/likes
+    public function likes(User $user)
+    {
+        $likedPosts = $user->likedPosts()
+            ->with('user')
+            ->orderByPivot('created_at', 'desc')
+            ->paginate(10);
+        return PostResource::collection($likedPosts);
+    }
+
+    // --- BAGIAN B: TAB PROFIL SAYA (/me) ---
+
+    // 1. Tab Lembar Saya
+    // GET /api/me/posts
+    public function myPosts(Request $request)
+    {
+        $posts = $request->user()->posts()->latest()->paginate(10);
+        return PostResource::collection($posts);
+    }
+
+    // 2. Tab Jilid Saya
+    // GET /api/me/series
+    public function mySeries(Request $request)
+    {
+        $series = $request->user()->series()->with('posts')->latest()->paginate(10);
+        return SeriesResource::collection($series);
+    }
+
+    // 3. Tab Suka Saya
+    // GET /api/me/likes
+    public function myLikes(Request $request)
+    {
+        $likedPosts = $request->user()
+            ->likedPosts()
+            ->with('user')
+            ->orderByPivot('created_at', 'desc')
+            ->paginate(10);
+        return PostResource::collection($likedPosts);
     }
 }

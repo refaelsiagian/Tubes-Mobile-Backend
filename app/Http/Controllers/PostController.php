@@ -16,7 +16,7 @@ class PostController extends Controller
     {
         $posts = Post::query()
             ->with('user')
-            ->withCount(['comments', 'likes'])
+            ->loadCount(['comments', 'likes'])
             ->where('status', 'published')
             ->latest()
             ->paginate(15);

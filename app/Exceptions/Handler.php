@@ -31,14 +31,14 @@ class Handler extends ExceptionHandler
         });
 
         // 2. TAMBAHKAN KODE INI DI DALAM REGISTER
-        $this->renderable(function (NotFoundHttpException $e, Request $request) {
-            // Cek apakah request datang dari jalur '/api/*'
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Data tidak ditemukan.',
-                    'error_code' => 404
-                ], 404);
-            }
-        });
+        // $this->renderable(function (NotFoundHttpException $e, Request $request) {
+        //     // Cek apakah request datang dari jalur '/api/*'
+        //     if ($request->is('api/*')) {
+        //         return response()->json([
+        //             'message' => 'Data tidak ditemukan.',
+        //             'error_code' => 404
+        //         ], 404);
+        //     }
+        // });
     }
 }

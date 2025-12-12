@@ -3,43 +3,102 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Resources\PostResource;
 use App\Models\BookmarkItem;
 use App\Models\Post;
 
 class BookmarkController extends Controller
 {
-
-    // 1. TOGGLE BOOKMARK (Simpan/Hapus)
-    // Kita pakai fitur toggle() bawaan relasi belongsToMany biar singkat
-    public function toggle(Request $request, Post $post)
+    // Get user's bookmarks
+    public function index(Request $request)
     {
-        // Gunakan relasi bookmarkedPosts() yang ada di User.php
-        // toggle() otomatis cek: kalau ada -> hapus, kalau gak ada -> simpan.
-        $changes = $request->user()->bookmarkedPosts()->toggle($post->id);
+        $userId = $request->user()->id;
 
-        // attached berisi array ID yang baru disimpan. 
-        // Kalau kosong, berarti barusan dihapus (detached).
-        $isBookmarked = count($changes['attached']) > 0;
+        // Assuming we just want a flat list of bookmarked posts for now
+        // or we can use the 'Reading List' folder logic if implemented.
+        // For simplicity matching the frontend 'Markah' page:
+        
+        $bookmarks = BookmarkItem::whereHas('folder', function($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
+        ->with(['post.user'])
+        ->latest()
+        ->get();
+
+        // Transform to match expected frontend format if needed, 
+        // or just return the posts with proper stats
+        $posts = $bookmarks->map(function($item) {
+            $post = $item->post;
+            // Load counts manually if not already loaded
+            $post->loadCount(['comments', 'likes']);
+            return $post;
+        });
 
         return response()->json([
-            'message' => $isBookmarked ? 'Disimpan ke bookmark' : 'Dihapus dari bookmark',
-            'is_bookmarked' => $isBookmarked
+            'success' => true,
+            'data' => \App\Http\Resources\PostResource::collection($posts),
         ]);
     }
 
-    // 2. LIHAT DAFTAR BOOKMARK
-    public function index(Request $request)
+    // Add bookmark
+    public function store(Request $request)
     {
-        // PERBAIKAN 2: Langsung panggil Post via relasi bookmarkedPosts
-        // Ini JAUH lebih efisien daripada ambil BookmarkItem dulu terus di-map
-        $posts = $request->user()
-            ->bookmarkedPosts() // Panggil relasi belongsToMany di User.php
-            ->with('user') // Eager load author postingan biar ringan
-            ->latest('bookmark_items.created_at') // Urutkan berdasarkan kapan disimpannya
-            ->paginate(10); // Pagination aman terkendali
+        $request->validate([
+            'post_id' => 'required|exists:posts,id',
+        ]);
 
-        // Return collection langsung, pagination metadata (page, total) TETAP ADA
-        return PostResource::collection($posts);
+        $user = $request->user();
+        
+        // Find or create default "Reading List" folder
+        $folder = $user->bookmarkFolders()->firstOrCreate(
+            ['name' => 'Reading List'],
+            ['user_id' => $user->id]
+        );
+
+        // Check if already bookmarked
+        $exists = BookmarkItem::where('folder_id', $folder->id)
+            ->where('post_id', $request->post_id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Postingan sudah ada di markah',
+            ], 409);
+        }
+
+        BookmarkItem::create([
+            'folder_id' => $folder->id,
+            'post_id' => $request->post_id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil ditambahkan ke markah',
+        ]);
+    }
+
+    // Remove bookmark
+    public function destroy(Request $request, $postId)
+    {
+        $user = $request->user();
+        
+        // Find user's folders
+        $folderIds = $user->bookmarkFolders()->pluck('id');
+
+        $deleted = BookmarkItem::whereIn('folder_id', $folderIds)
+            ->where('post_id', $postId)
+            ->delete();
+
+        if ($deleted) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil dihapus dari markah',
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Markah tidak ditemukan',
+            ], 404);
+        }
     }
 }

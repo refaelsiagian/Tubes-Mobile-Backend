@@ -16,6 +16,7 @@ class Post extends Model
         'snippet',
         'thumbnail_url',
         'status',
+        'visibility',
     ];
 
     public function user()
@@ -40,17 +41,11 @@ class Post extends Model
     public function series()
     {
         return $this->belongsToMany(Series::class, 'series_posts', 'post_id', 'series_id')
-            ->withPivot('position'); // Untuk mengambil data urutan 'position'
+                    ->withPivot('position'); // Untuk mengambil data urutan 'position'
     }
-
+    
     public function bookmarkItems()
     {
         return $this->hasMany(BookmarkItem::class);
-    }
-    // Relasi Many-to-Many ke User (via tabel bookmark_items)
-    public function bookmarkedBy()
-    {
-        // Parameter: ModelTujuan, NamaTabelPivot, KeyDiTabelIni, KeyTujuan
-        return $this->belongsToMany(User::class, 'bookmark_items', 'post_id', 'user_id');
     }
 }

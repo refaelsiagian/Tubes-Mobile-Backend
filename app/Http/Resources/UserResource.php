@@ -14,11 +14,6 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Cek: Apakah user yang login (request) ADALAH user yang datanya sedang ditampilkan ini?
-        // $request->user() bisa null kalau endpointnya public tanpa login
-        $currentUser = $request->user('sanctum');
-        $isOwner = $currentUser && $currentUser->id === $this->id;
-
         return [
             // 1. DATA DASAR (Selalu Muncul)
             // Ini murah, karena ambil dari kolom tabel users langsung
@@ -48,7 +43,6 @@ class UserResource extends JsonResource
                 'followers' => (int) ($this->followers_count ?? 0),
                 'following' => (int) ($this->following_count ?? 0),
             ],
-            'email' => $this->when($isOwner, $this->email),
 
             // Cek Status Follow (Khusus kalau yg lihat orang lain)
             // "Apakah user yg sedang login memfollow user ini?"

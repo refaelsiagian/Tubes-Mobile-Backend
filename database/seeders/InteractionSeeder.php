@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Post;
 use App\Models\Comment;
-use App\Models\BookmarkFolder;
 use App\Models\Series;
 
 class InteractionSeeder extends Seeder
@@ -20,7 +19,6 @@ class InteractionSeeder extends Seeder
 
         $users = User::all();
         $posts = Post::all();
-        $folders = BookmarkFolder::all();
         $series = Series::all();
 
         // --- BAGIAN INI YANG DIPERBAIKI (Likes) ---
@@ -54,7 +52,7 @@ class InteractionSeeder extends Seeder
         }
 
         // --- Buat Item Bookmark ---
-        foreach ($folders as $folder) {
+        foreach ($users as $folder) {
             $postCount = $posts->count();
             $maxBookmarks = min($postCount, 7); // Jangan minta lebih dari jumlah post yang ada
             if ($maxBookmarks > 0) {

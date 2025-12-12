@@ -77,6 +77,11 @@ class User extends Authenticatable
         return $this->hasMany(BookmarkItem::class);
     }
 
+        public function bookmarkedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'bookmark_items', 'user_id', 'post_id');
+    }
+
     /**
      * The attributes that should be cast.
      *

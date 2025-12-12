@@ -12,14 +12,57 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $posts = Post::query()
             ->with('user')
             // Gunakan withCount untuk query builder (lebih efisien dari loadCount)
             ->withCount(['comments', 'likes'])
-            ->where('status', 'published')
-            ->latest()
+            ->when($request->has('user_id'), function ($query) use ($request) {
+                $query->where('user_id', $request->user_id);
+                
+                // Jika user melihat profilnya sendiri, tampilkan semua (termasuk draft)
+                // Jika melihat profil orang lain, hanya tampilkan published
+                $user = $request->user('sanctum');
+                if (!$user || $user->id != $request->user_id) {
+                    $query->where('status', 'published');
+                }
+            }, function ($query) {
+                // Jika tidak ada user_id (Home Feed), hanya tampilkan published
+                $query->where('status', 'published');
+            })
+            ->when($request->search, function ($query, $search) use ($request) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('content', 'like', "%{$search}%");
+                });
+                
+                $user = $request->user('sanctum');
+                // Allow searching own posts (User request: "yang di home bisa search postingan sendiri")
+                // if ($user) {
+                //     $query->where('user_id', '!=', $user->id);
+                // }
+            });
+
+        // Feed Prioritization (Only for Home Feed: No user_id filter and No search)
+        if (!$request->has('user_id') && !$request->search) {
+            $user = $request->user('sanctum');
+            if ($user) {
+                // Get IDs of users being followed
+                $followingIds = $user->following()->pluck('users.id');
+                // Add current user's ID (to see own posts too)
+                $followingIds->push($user->id);
+                
+                if ($followingIds->isNotEmpty()) {
+                    $idsString = $followingIds->implode(',');
+                    // Priority 1: Followed/Self, Priority 2: Others
+                    // We use orderByRaw to create these two groups
+                    $posts->orderByRaw("CASE WHEN user_id IN ($idsString) THEN 1 ELSE 2 END");
+                }
+            }
+        }
+
+        $posts = $posts->latest()
             ->paginate(15);
 
         return PostResource::collection($posts);

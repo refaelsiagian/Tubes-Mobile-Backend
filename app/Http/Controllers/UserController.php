@@ -13,6 +13,30 @@ use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
+    // 0. CARI USER (Public)
+    // URL: GET /api/users?search=...
+    public function index(Request $request)
+    {
+        $users = User::query()
+            ->when($request->search, function ($query, $search) use ($request) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('username', 'like', "%{$search}%");
+                });
+
+                // Exclude current user from search results
+                $user = $request->user('sanctum');
+                if ($user) {
+                    $query->where('id', '!=', $user->id);
+                }
+            })
+            ->withCount(['posts', 'followers'])
+            ->take(20)
+            ->get();
+
+        return UserResource::collection($users);
+    }
+
     // 1. LIHAT PROFIL ORANG LAIN (Public)
     // URL: GET /api/users/{username}
     public function show(User $user)

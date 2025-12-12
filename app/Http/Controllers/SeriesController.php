@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Series;
 use Illuminate\Http\Request;
 
+use App\Http\Resources\SeriesResource;
+
 class SeriesController extends Controller
 {
     public function index(Request $request)
     {
         $query = Series::query()
-            ->with('user')
-            ->withCount('posts');
+            ->with(['user', 'posts']); // Load posts for thumbnail and count
 
         if ($request->has('user_id')) {
             $query->where('user_id', $request->user_id);
@@ -21,7 +22,7 @@ class SeriesController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $series,
+            'data' => SeriesResource::collection($series),
         ]);
     }
 

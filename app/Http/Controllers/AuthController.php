@@ -10,10 +10,26 @@ use App\Http\Resources\UserResource; // Pakai resource yang sudah kita buat
 
 class AuthController extends Controller
 {
+    // Check Username Availability
+    public function checkUsername(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string|max:50',
+        ]);
+
+        $exists = User::where('username', $request->username)->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'Username sudah dipakai' : 'Username tersedia'
+        ]);
+    }
+
     // 1. REGISTER
     public function register(Request $request)
     {
         $request->validate([
+            'name' => 'required|string|max:255',
             'username' => 'required|string|max:50|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
@@ -24,7 +40,7 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password), // Password wajib di-hash
-            'name' => $request->username, // Default name sama dengan username
+            'name' => $request->name,
             // 'avatar_url' => null, // Default null, nanti UserResource yang kasih default avatar
         ]);
 
@@ -71,5 +87,50 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logout berhasil']);
+    }
+
+    // 4. UPDATE EMAIL
+    public function updateEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|unique:users,email,' . $request->user()->id,
+            'password' => 'required',
+        ]);
+
+        $user = $request->user();
+
+        // Verifikasi password sebelum ganti email
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Password salah'], 403);
+        }
+
+        $user->email = $request->email;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Email berhasil diubah',
+            'user' => new UserResource($user),
+        ]);
+    }
+
+    // 5. UPDATE PASSWORD
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6',
+        ]);
+
+        $user = $request->user();
+
+        // Verifikasi password lama
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Password lama salah'], 403);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Password berhasil diubah']);
     }
 }

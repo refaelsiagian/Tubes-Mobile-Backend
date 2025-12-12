@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bookmark_items', function (Blueprint $table) {
+        Schema::create('bookmark_folders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('folder_id')->constrained('bookmark_folders')->onDelete('cascade');
-            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('name', 100);
             $table->timestamp('created_at')->useCurrent();
-            $table->unique(['folder_id', 'post_id']);
         });
     }
 
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bookmark_items');
+        Schema::dropIfExists('bookmark_folders');
     }
 };

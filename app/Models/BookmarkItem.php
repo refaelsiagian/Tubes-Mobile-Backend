@@ -14,13 +14,13 @@ class BookmarkItem extends Model
     protected $table = 'bookmark_items';
 
     protected $fillable = [
-        'user_id',
+        'folder_id',
         'post_id',
     ];
-    
-        public function user()
+
+    public function folder()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(BookmarkFolder::class, 'folder_id');
     }
 
     public function post()

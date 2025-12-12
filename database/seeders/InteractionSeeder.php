@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Post;
 use App\Models\Comment;
+use App\Models\BookmarkFolder;
 use App\Models\Series;
 
 class InteractionSeeder extends Seeder
@@ -19,6 +20,7 @@ class InteractionSeeder extends Seeder
 
         $users = User::all();
         $posts = Post::all();
+        $folders = BookmarkFolder::all();
         $series = Series::all();
 
         // --- BAGIAN INI YANG DIPERBAIKI (Likes) ---
@@ -52,20 +54,14 @@ class InteractionSeeder extends Seeder
         }
 
         // --- Buat Item Bookmark ---
-        foreach ($users as $user) {
+        foreach ($folders as $folder) {
             $postCount = $posts->count();
-            $maxBookmarks = min($postCount, 7); // Max 7 bookmark per user
-            
+            $maxBookmarks = min($postCount, 7); // Jangan minta lebih dari jumlah post yang ada
             if ($maxBookmarks > 0) {
-                // Ambil beberapa post acak
-                $postsToBookmark = $posts->random(rand(0, $maxBookmarks));
-                
-                // Masukkan ke tabel bookmark_items via relasi bookmarkedPosts
-                // (Pastikan kamu sudah nambahin fungsi bookmarkedPosts di User.php tadi ya)
-                $user->bookmarkedPosts()->syncWithoutDetaching($postsToBookmark);
+                $postsToBookmark = $posts->random(rand(1, $maxBookmarks));
+                $folder->posts()->attach($postsToBookmark);
             }
         }
-          
 
         // --- Isi Post ke dalam Series ---
         foreach ($series as $s) {

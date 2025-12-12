@@ -52,14 +52,20 @@ class InteractionSeeder extends Seeder
         }
 
         // --- Buat Item Bookmark ---
-        foreach ($users as $folder) {
+        foreach ($users as $user) {
             $postCount = $posts->count();
-            $maxBookmarks = min($postCount, 7); // Jangan minta lebih dari jumlah post yang ada
+            $maxBookmarks = min($postCount, 7); // Max 7 bookmark per user
+            
             if ($maxBookmarks > 0) {
-                $postsToBookmark = $posts->random(rand(1, $maxBookmarks));
-                $folder->posts()->attach($postsToBookmark);
+                // Ambil beberapa post acak
+                $postsToBookmark = $posts->random(rand(0, $maxBookmarks));
+                
+                // Masukkan ke tabel bookmark_items via relasi bookmarkedPosts
+                // (Pastikan kamu sudah nambahin fungsi bookmarkedPosts di User.php tadi ya)
+                $user->bookmarkedPosts()->syncWithoutDetaching($postsToBookmark);
             }
         }
+          
 
         // --- Isi Post ke dalam Series ---
         foreach ($series as $s) {

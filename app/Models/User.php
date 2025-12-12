@@ -72,7 +72,7 @@ class User extends Authenticatable
         return 'username';
     }
 
-        public function bookmarks()
+    public function bookmarks()
     {
         return $this->hasMany(BookmarkItem::class);
     }

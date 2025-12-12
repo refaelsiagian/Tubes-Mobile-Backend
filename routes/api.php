@@ -8,6 +8,10 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FollowController;
+use App\Http\Controllers\BookmarkController;
+use App\Http\Controllers\SeriesController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -60,4 +64,38 @@ Route::middleware('auth:sanctum')->group(function () {
     // 2. Route Profil Sendiri ("Me")
     Route::get('/me', [UserController::class, 'me']);     // Lihat profil sendiri
     Route::post('/me', [UserController::class, 'update']); // Edit profil sendiri
+
+    // 3. Ganti Email (Butuh email baru & pass saat ini)
+    Route::put('/me/email', [UserController::class, 'updateEmail']);
+
+    // 2. Ganti Password (Butuh pass lama & baru)
+    Route::put('/me/password', [UserController::class, 'updatePassword']);
+
+    // 4. Route Follow / Unfollow
+    Route::post('/users/{user}/follow', [FollowController::class, 'toggle']);
+
+    // Toggle Bookmark
+    Route::post('/posts/{post}/bookmark', [BookmarkController::class, 'toggle']);
+    
+    // Lihat Daftar Bookmark Saya
+    Route::get('/bookmarks', [BookmarkController::class, 'index']);
+
+    // CRUD Series (Jilid)
+    // Contoh data input:
+    // {
+    //     "title": "Koleksi Belajar Masakkkkk",
+    //     "description": "Resep andalan saya",
+    //     "posts": [8, 2, 5, 3]   // id post yang sudah diurutkan
+    // }
+    Route::apiResource('series', SeriesController::class);
+
+    // 1. Tab Profil Orang Lain
+    Route::get('/users/{user}/posts',  [UserController::class, 'posts']);
+    Route::get('/users/{user}/series', [UserController::class, 'series']);
+    Route::get('/users/{user}/likes',  [UserController::class, 'likes']);
+
+    // 2. Tab Profil Saya
+    Route::get('/me/posts',  [UserController::class, 'myPosts']);
+    Route::get('/me/series', [UserController::class, 'mySeries']);
+    Route::get('/me/likes',  [UserController::class, 'myLikes']);
 });

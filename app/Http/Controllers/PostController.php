@@ -1,11 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Http\Resources\PostResource;
 use App\Models\Post;
-
-
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage; // Wajib import ini buat hapus/simpan file
 
 class PostController extends Controller
 {
@@ -16,6 +16,7 @@ class PostController extends Controller
     {
         $posts = Post::query()
             ->with('user')
+            // Gunakan withCount untuk query builder (lebih efisien dari loadCount)
             ->withCount(['comments', 'likes'])
             ->where('status', 'published')
             ->latest()
@@ -25,37 +26,41 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        // No implementation needed for API controllers
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+        // 1. Validasi
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title'   => 'required|string|max:255',
             'content' => 'required|string',
-            'status' => 'required|in:draft,published',
-            // 'snippet' => 'nullable|string|max:500',
-            // 'thumbnail_url' => 'nullable|url',
+            'status'  => 'required|in:draft,published',
+            'snippet' => 'nullable|string|max:500',
+            // Ubah validasi jadi FILE IMAGE
+            'thumbnail' => 'nullable|image|max:2048', // Max 2MB, format jpg/png
         ]);
 
+        $user = $request->user(); // Ambil user dari token
+
+        // 2. Handle Upload Thumbnail
+        $thumbnailPath = null;
+        if ($request->hasFile('thumbnail')) {
+            // Simpan ke folder: storage/app/public/thumbnails
+            $thumbnailPath = $request->file('thumbnail')->store('thumbnails', 'public');
+        }
+
+        // 3. Simpan ke Database
         $post = Post::create([
-            'user_id' => 1,
-            'title' => $request->title,
-            'content' => $request->input(`content`), // Atau $request->content,
-            'status' => $request->status,
-            // 'snippet' => $request->snippet,
-            // 'thumbnail_url' => $request->thumbnail_url,
+            'user_id'       => $user->id, // Pakai ID user yang login
+            'title'         => $request->title,
+            'content'       => $request->input('content'),
+            'status'        => $request->status,
+            'snippet'       => $request->snippet,
+            'thumbnail_url' => $thumbnailPath, // Simpan path-nya saja
         ]);
 
-        $post->load('user');
-        
+        $post->load('user'); // Load user untuk response
+
         return new PostResource($post);
     }
 
@@ -64,61 +69,79 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
+        // Pakai loadCount di sini benar karena $post sudah berupa Model (bukan query builder)
         $post->load('user')->loadCount(['comments', 'likes']);
         return new PostResource($post);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Post $post)
-    {
-        // Pakai route show
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Post $post)
     {
-        // 1. Validasi
-        // Aturannya mirip store, tapi biasanya kita bolehkan kalau user
-        // cuma mau update sebagian (misal judul doang), 
-        // tapi untuk blog editor biasanya dikirim ulang semua datanya, jadi 'required' tetap aman.
+        // 1. Cek Authorisasi (Opsional tapi PENTING)
+        // Pastikan yang edit adalah pemilik postingan
+        if ($request->user()->id !== $post->user_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // 2. Validasi
         $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'status' => 'required|in:draft,published',
-            // 'thumbnail_url' => 'nullable|url',
+            'title'     => 'required|string|max:255',
+            'content'   => 'required|string',
+            'status'    => 'required|in:draft,published',
+            'snippet'   => 'nullable|string|max:500',
+            'thumbnail' => 'nullable|image|max:2048', // Validasi file
         ]);
 
-        // 2. Update Database
-        // Kita tidak perlu set 'user_id' lagi karena penulisnya tidak berubah.
-        $post->update([
-            'title' => $request->title,
-            'content' => $request->input('content'), // Atau $request->content,
-            'status' => $request->status,
-            // 'thumbnail_url' => $request->thumbnail_url,
-        ]);
+        // 3. Siapkan Data Text
+        $dataToUpdate = [
+            'title'   => $request->title,
+            'content' => $request->input('content'), // Jangan pakai request->  content,
+            'status'  => $request->status,
+            'snippet' => $request->snippet,
+        ];
 
-        // 3. Load User (PENTING)
-        // Sama seperti di store, kita load relasi user agar 
-        // key 'author' tetap muncul di JSON response (karena logic whenLoaded di Resource).
-        // Ini biar Frontend gak kaget/error karena tiba-tiba data author hilang pas habis edit.
-        $post->load('user');
+        // 4. Handle Ganti Thumbnail
+        if ($request->hasFile('thumbnail')) {
+            // A. Hapus thumbnail lama jika ada (Biar storage gak penuh sampah)
+            if ($post->thumbnail_url && Storage::disk('public')->exists($post->thumbnail_url)) {
+                Storage::disk('public')->delete($post->thumbnail_url);
+            }
 
-        // 4. Return Resource
-        return new PostResource($post);
+            // B. Upload yang baru
+            $path = $request->file('thumbnail')->store('thumbnails', 'public');
+            
+            // C. Masukkan ke array update
+            $dataToUpdate['thumbnail_url'] = $path;
+        }
+
+        // 5. Eksekusi Update
+        $post->update($dataToUpdate);
+
+        // 6. Return response
+        // Load ulang user biar data author gak hilang di JSON response
+        return new PostResource($post->load('user'));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, Post $post)
     {
-        //
+        // 1. Cek Authorisasi
+        if ($request->user()->id !== $post->user_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // 2. Hapus File Thumbnail dari Storage (Bersih-bersih)
+        if ($post->thumbnail_url && Storage::disk('public')->exists($post->thumbnail_url)) {
+            Storage::disk('public')->delete($post->thumbnail_url);
+        }
+
+        // 3. Hapus Data dari DB
+        $post->delete();
+
+        return response()->json(['message' => 'Post deleted successfully']);
     }
 }

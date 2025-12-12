@@ -31,6 +31,7 @@ class PostResource extends JsonResource
                 'likes' => (int) $this->likes_count,
                 'comments' => (int) $this->comments_count,
             ],
+            'thumbnail_url' => $this->thumbnail_url ? asset('storage/' . $this->thumbnail_url) : null,
             'published_at' => $this->created_at->toFormattedDateString(), // Contoh format tanggal
             'is_liked' => $user ? $this->likes()->where('user_id', $user->id)->exists() : false,
             'is_bookmarked' => $user

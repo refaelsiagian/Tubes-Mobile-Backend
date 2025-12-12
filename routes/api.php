@@ -34,15 +34,15 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // --- ROUTE PROTECTED (Harus Login / Bawa Token) ---
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // Logout harus login dulu
     Route::post('/logout', [AuthController::class, 'logout']);
-    
+
     // Cek Profile Sendiri (Biasanya Flutter butuh ini buat mastiin token masih aktif)
     Route::get('/user', function (Request $request) {
         return new \App\Http\Resources\UserResource($request->user());
     });
-    
+
     // Nanti endpoint Create Post (Store), Update, Delete pindahin ke sini
     // biar cuma user login yang bisa posting!
     Route::apiResource('posts', PostController::class);
@@ -50,7 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route untuk Komentar (Nested Resource)
     Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
     Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
-    
+
     // Route Hapus (Gak perlu nested karena Comment ID sudah unik)
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 
@@ -74,11 +74,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // 4. Route Follow / Unfollow
     Route::post('/users/{user}/follow', [FollowController::class, 'toggle']);
 
-    // Toggle Bookmark
-    Route::post('/posts/{post}/bookmark', [BookmarkController::class, 'toggle']);
-    
-    // Lihat Daftar Bookmark Saya
-    Route::get('/bookmarks', [BookmarkController::class, 'index']);
+    // Bookmark
+    Route::apiResource('bookmarks', BookmarkController::class);
 
     // CRUD Series (Jilid)
     // Contoh data input:

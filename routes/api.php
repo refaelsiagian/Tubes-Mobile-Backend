@@ -30,6 +30,8 @@ use App\Http\Controllers\SeriesController;
 // --- ROUTE PUBLIK (Gak perlu login) ---
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/check-username', [AuthController::class, 'checkUsername']);
+Route::get('/users', [UserController::class, 'index']);
 
 
 // --- ROUTE PROTECTED (Harus Login / Bawa Token) ---
@@ -42,6 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return new \App\Http\Resources\UserResource($request->user());
     });
+
+    // Update Email & Password
+    Route::put('/user/email', [AuthController::class, 'updateEmail']);
+    Route::put('/user/password', [AuthController::class, 'updatePassword']);
 
     // Nanti endpoint Create Post (Store), Update, Delete pindahin ke sini
     // biar cuma user login yang bisa posting!

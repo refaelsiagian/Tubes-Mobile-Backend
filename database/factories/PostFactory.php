@@ -84,6 +84,8 @@ class PostFactory extends Factory
                 "insert" => "\n"
             ]
         ];
+        
+        $randomDate = fake()->dateTimeBetween('-2 months', 'now');
 
         return [
             // 'user_id' => User::factory(),
@@ -91,6 +93,8 @@ class PostFactory extends Factory
             'content' => json_encode($dummyContent),
             'snippet' => fake()->text(100), 
             'status' => fake()->randomElement(['draft', 'published']),
+            'created_at' => $randomDate,
+            'updated_at' => $randomDate,
         ];
     }
 }

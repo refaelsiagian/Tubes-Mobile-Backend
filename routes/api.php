@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\SeriesController;
+use App\Http\Controllers\SearchController;
 
 
 /*
@@ -101,4 +102,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/posts',  [UserController::class, 'myPosts']);
     Route::get('/me/series', [UserController::class, 'mySeries']);
     Route::get('/me/likes',  [UserController::class, 'myLikes']);
+    
+    // Rute Search Tab Terpisah
+    Route::get('/search/users', [SearchController::class, 'users']); // Tab Profil
+    Route::get('/search/posts', [SearchController::class, 'posts']); // Tab Lembar
 });

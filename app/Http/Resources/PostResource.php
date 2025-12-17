@@ -21,7 +21,7 @@ class PostResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             // 'thumbnail_url' => $this->thumbnail_url, // Jika ada
-            // 'snippet' => substr($this->content, 0, 100) . '...', // Contoh snippet
+            'snippet' => $this->snippet ?? Str::limit(strip_tags($this->content), 100),
             'content' => $this->when(
                 $request->routeIs('posts.show'),
                 $this->content

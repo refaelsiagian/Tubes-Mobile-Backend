@@ -224,6 +224,7 @@ class UserController extends Controller
         $likedPosts = $request->user()
             ->likedPosts()
             ->with('user')
+            ->withCount(['likes', 'comments'])
             ->orderByPivot('created_at', 'desc')
             ->paginate(10);
         return PostResource::collection($likedPosts);

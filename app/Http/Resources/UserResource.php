@@ -44,9 +44,9 @@ class UserResource extends JsonResource
             // secara eksplisit memanggil 'withCount'.
             // Statistik (Otomatis muncul kalau di Controller dipanggil loadCount)
             'stats' => [
-                'posts' => (int) ($this->posts_count ?? 0),
-                'followers' => (int) ($this->followers_count ?? 0),
-                'following' => (int) ($this->following_count ?? 0),
+                'posts'     => $this->posts()->count(),      
+                'followers' => $this->followers()->count(),
+                'following' => $this->following()->count(),
             ],
             'email' => $this->when($isOwner, $this->email),
 

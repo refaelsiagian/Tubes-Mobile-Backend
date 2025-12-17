@@ -13,7 +13,8 @@ class BookmarkController extends Controller
         $userId = $request->user()->id;
 
         // Assuming we just want a flat list of bookmarked posts for now
-        // or we can use the 'Reading List' folder logic if implemented.
+        // or we can use t
+        // he 'Reading List' folder logic if implemented.
         // For simplicity matching the frontend 'Markah' page:
         
         $bookmarks = BookmarkItem::whereHas('folder', function($q) use ($userId) {

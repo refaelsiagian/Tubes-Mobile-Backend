@@ -8,7 +8,6 @@ use App\Models\Post;
 
 class BookmarkController extends Controller
 {
-    // Get user's bookmarks
     public function index(Request $request)
     {
         $userId = $request->user()->id;

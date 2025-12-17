@@ -49,6 +49,8 @@ class UserResource extends JsonResource
                 'following' => (int) ($this->following_count ?? 0),
             ],
             'email' => $this->when($isOwner, $this->email),
+            'email_verified_at' => $this->when($isOwner, $this->email_verified_at),
+            'is_verified' => $this->email_verified_at !== null,
 
             // Cek Status Follow (Khusus kalau yg lihat orang lain)
             // "Apakah user yg sedang login memfollow user ini?"

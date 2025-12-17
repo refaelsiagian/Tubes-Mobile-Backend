@@ -32,10 +32,22 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/check-username', [AuthController::class, 'checkUsername']);
 Route::get('/users', [UserController::class, 'index']);
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
 
 
 // --- ROUTE PROTECTED (Harus Login / Bawa Token) ---
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Kirim ulang email verifikasi
+    Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationEmail'])
+        ->middleware('throttle:6,1');
+
+    // Konfirmasi perubahan email (via link)
+    Route::get('/email/change/{id}/{token}', [AuthController::class, 'confirmEmailChange'])
+        ->middleware('signed')
+        ->name('email.change.confirm');
 
     // Logout harus login dulu
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -65,6 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Endpoint Toggle Like
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle']);
+    Route::post('/posts/{post}/status', [PostController::class, 'updateStatus']);
 
     Route::get('/users/{user}', [UserController::class, 'show']); // {user} ini nanti isinya username
     // 2. Route Profil Sendiri ("Me")

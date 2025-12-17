@@ -82,7 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users/{user}/follow', [FollowController::class, 'toggle']);
 
     // Bookmark
-    Route::apiResource('bookmarks', BookmarkController::class);
+    // Route::apiResource('bookmarks', BookmarkController::class);
+    Route::get('/bookmarks', [BookmarkController::class, 'index']);
+    Route::post('/posts/{id}/bookmark', [BookmarkController::class, 'toggle']);
 
     // CRUD Series (Jilid)
     // Contoh data input:

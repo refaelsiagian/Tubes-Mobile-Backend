@@ -191,4 +191,23 @@ class PostController extends Controller
 
         return response()->json(['message' => 'Post deleted successfully']);
     }
+
+    /**
+     * Update status only (draft/published)
+     */
+    public function updateStatus(Request $request, Post $post)
+    {
+        if ($request->user()->id !== $post->user_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:draft,published',
+        ]);
+
+        $post->status = $request->status;
+        $post->save();
+
+        return new PostResource($post->load('user')->loadCount(['comments', 'likes']));
+    }
 }

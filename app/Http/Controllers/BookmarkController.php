@@ -16,6 +16,10 @@ class BookmarkController extends Controller
 
         // Ambil bookmark milik user, beserta data Post dan Penulisnya
         $bookmarks = BookmarkItem::where('user_id', $userId)
+        // Filter relasi 'post': Hanya ambil jika statusnya 'published'
+            ->whereHas('post', function ($query) {
+                $query->where('status', 'published');
+            })
             ->with(['post.user', 'post.likes', 'post.comments']) // Load relasi penting
             ->latest()
             ->get();
@@ -29,14 +33,16 @@ class BookmarkController extends Controller
             // Kalau post sudah dihapus tapi bookmark masih ada, kita skip (opsional)
             if (!$post) return null;
 
-            // Tambahkan info manual
             $post->is_bookmarked = true; 
             
-            // Format stats biar Flutter gak error baca null
-            $post->stats = [
-                'likes' => $post->likes->count(),
-                'comments' => $post->comments->count()
-            ];
+            // --- HAPUS / GANTI BAGIAN MANUAL STATS LAMA ---
+            // $post->stats = [...]; <-- INI TIDAK DIBACA OLEH RESOURCE
+            
+            // --- GANTI DENGAN INI ---
+            // Kita isi atribut '_count' secara manual agar PostResource bisa membacanya
+            $post->likes_count = $post->likes->count();
+            $post->comments_count = $post->comments->count();
+            // ------------------------
 
             return $post;
         })->filter(); // Hapus yang null

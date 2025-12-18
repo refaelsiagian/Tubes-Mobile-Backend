@@ -18,6 +18,10 @@ class PostController extends Controller
             ->with('user')
             // Gunakan withCount untuk query builder (lebih efisien dari loadCount)
             ->withCount(['comments', 'likes'])
+            // --- TAMBAHKAN BLOK INI (Agar filter Draft/Published dari Flutter jalan) ---
+            ->when($request->status, function ($query, $status) {
+                $query->where('status', $status);
+            })
             ->when($request->has('user_id'), function ($query) use ($request) {
                 $query->where('user_id', $request->user_id);
                 

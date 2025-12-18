@@ -57,13 +57,15 @@ class SeriesController extends Controller
 
     public function show($id)
     {
-        $series = Series::with(['user', 'posts.user'])->find($id);
+        $series = Series::with(['user', 'posts' => function($query) {
+            $query->with(['user'])->withCount(['likes', 'comments']);
+        }])->find($id);
 
         if (!$series) {
             return response()->json(['success' => false, 'message' => 'Jilid tidak ditemukan'], 404);
         }
 
-        return response()->json(['success' => true, 'data' => $series]);
+        return new SeriesResource($series);
     }
 
     public function update(Request $request, $id)
@@ -94,7 +96,11 @@ class SeriesController extends Controller
             $series->posts()->sync($postsWithPosition);
         }
 
-        return response()->json(['success' => true, 'data' => $series, 'message' => 'Jilid berhasil diperbarui']);
+        $series->load(['user', 'posts' => function($query) {
+            $query->with(['user'])->withCount(['likes', 'comments']);
+        }]);
+
+        return (new SeriesResource($series))->additional(['message' => 'Jilid berhasil diperbarui']);
     }
 
     public function destroy($id)

@@ -49,6 +49,13 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
+    public function showById($id)
+    {
+        $user = User::findOrFail($id);
+        $user->loadCount(['posts', 'followers', 'following']);
+        return new UserResource($user);
+    }
+
     // 2. LIHAT PROFIL SENDIRI (Private - via Token)
     // URL: GET /api/me
     public function me(Request $request)

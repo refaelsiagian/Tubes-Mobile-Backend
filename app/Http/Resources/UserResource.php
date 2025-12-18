@@ -54,7 +54,7 @@ class UserResource extends JsonResource
 
             // Cek Status Follow (Khusus kalau yg lihat orang lain)
             // "Apakah user yg sedang login memfollow user ini?"
-            'is_followed' => $request->user()
+            'is_following' => $request->user()
                 ? $this->followers()->where('follower_id', $request->user()->id)->exists()
                 : false,
         ];

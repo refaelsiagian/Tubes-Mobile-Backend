@@ -81,6 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts/{post}/status', [PostController::class, 'updateStatus']);
 
     Route::get('/users/{user}', [UserController::class, 'show']); // {user} ini nanti isinya username
+    Route::get('/users/id/{id}', [UserController::class, 'showById']);
     // 2. Route Profil Sendiri ("Me")
     Route::get('/me', [UserController::class, 'me']);     // Lihat profil sendiri
     Route::post('/me', [UserController::class, 'update']); // Edit profil sendiri
@@ -93,6 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 4. Route Follow / Unfollow
     Route::post('/users/{user}/follow', [FollowController::class, 'toggle']);
+    Route::post('/follow/{user}', [FollowController::class, 'toggle']);
 
     // Bookmark
     // Route::apiResource('bookmarks', BookmarkController::class);

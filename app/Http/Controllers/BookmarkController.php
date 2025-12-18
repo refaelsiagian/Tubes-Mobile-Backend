@@ -13,25 +13,18 @@ class BookmarkController extends Controller
     {
         $userId = $request->user()->id;
 
-        // Assuming we just want a flat list of bookmarked posts for now
-        // or we can use the 'Reading List' folder logic if implemented.
-        // For simplicity matching the frontend 'Markah' page:
-        
-        $bookmarks = BookmarkItem::whereHas('folder', function($q) use ($userId) {
-            $q->where('user_id', $userId);
-        })
-        ->with(['post.user'])
-        ->latest()
-        ->get();
+        $bookmarks = BookmarkItem::where('user_id', $userId)
+            ->with(['post.user'])
+            ->latest()
+            ->get();
 
-        // Transform to match expected frontend format if needed, 
-        // or just return the posts with proper stats
         $posts = $bookmarks->map(function($item) {
             $post = $item->post;
-            // Load counts manually if not already loaded
-            $post->loadCount(['comments', 'likes']);
+            if ($post) {
+                $post->loadCount(['comments', 'likes']);
+            }
             return $post;
-        });
+        })->filter();
 
         return response()->json([
             'success' => true,
@@ -46,16 +39,10 @@ class BookmarkController extends Controller
             'post_id' => 'required|exists:posts,id',
         ]);
 
-        $user = $request->user();
+        $userId = $request->user()->id;
         
-        // Find or create default "Reading List" folder
-        $folder = $user->bookmarkFolders()->firstOrCreate(
-            ['name' => 'Reading List'],
-            ['user_id' => $user->id]
-        );
-
         // Check if already bookmarked
-        $exists = BookmarkItem::where('folder_id', $folder->id)
+        $exists = BookmarkItem::where('user_id', $userId)
             ->where('post_id', $request->post_id)
             ->exists();
 
@@ -67,7 +54,7 @@ class BookmarkController extends Controller
         }
 
         BookmarkItem::create([
-            'folder_id' => $folder->id,
+            'user_id' => $userId,
             'post_id' => $request->post_id,
         ]);
 
@@ -80,12 +67,9 @@ class BookmarkController extends Controller
     // Remove bookmark
     public function destroy(Request $request, $postId)
     {
-        $user = $request->user();
+        $userId = $request->user()->id;
         
-        // Find user's folders
-        $folderIds = $user->bookmarkFolders()->pluck('id');
-
-        $deleted = BookmarkItem::whereIn('folder_id', $folderIds)
+        $deleted = BookmarkItem::where('user_id', $userId)
             ->where('post_id', $postId)
             ->delete();
 
